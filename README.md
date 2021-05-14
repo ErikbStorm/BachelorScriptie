@@ -45,5 +45,5 @@ Voor het ontwikkelen van het programma heb ik ook gekeken naar de runtime van he
 Wellicht is het beter om sommige features te verwijderen om zo de runtime en standaard deviatie te verbeteren.
 
 Er zit ook een groot verschil in trainingsduur.
-NaiveBayes training tijd: 23s,
-LinearSVC training tijd: 3s
+NaiveBayes training tijd: 3s,
+LinearSVC training tijd: 23s

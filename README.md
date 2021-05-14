@@ -1,3 +1,7 @@
+**Erik Storm**
+
+**s3715671**
+
 # Scores
 
 Testing LinearSVC

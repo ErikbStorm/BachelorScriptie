@@ -2,6 +2,9 @@
 
 **s3715671**
 
+The code used for my bachelor thesis: Named entity recognition for Frisian text using machine learning.
+Including data and the results achieved.
+
 # Scores
 
 Testing LinearSVC

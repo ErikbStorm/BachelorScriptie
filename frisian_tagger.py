@@ -19,8 +19,8 @@ def main():
     data_test = importData('fry-ner-test.tsv')
 
     #For testing the kfolds
-    #testKFolds(data_train, save=False, title='best settings again 2')
-
+    #testKFolds(data_train, save=True, title='Standard + +1- words. + word.isalnum')
+    #exit()
     print('Testing LinearSVC')
     testOnTestSet(data_train, data_test, type='SVM')
 
@@ -117,10 +117,13 @@ def testOnTestSet(data_train, data_test, type='SVM'):
     test = dataToFeatureList(data_test)
     #train, test, tags = dataToTrainTest(data)
     #tags.remove('O')
+    old_time = time.time()
     if type == 'SVM':
         clf = SVM(train)
     else:
         clf = naiveBayes(train)
+    runtime = time.time() - old_time
+    print(f"Runtime: {round(runtime,2)}s")
     tags = set([label for _, label in train])
     tags.remove('O')
     
@@ -175,6 +178,14 @@ def calcF1A(classifier, test, tags):
     f1 = sklearn.metrics.f1_score(y_true, y_pred, average='weighted', labels=list(tags))
     a = len([val for val in correct_list if val == True]) / len(correct_list)
     print(classification_report(y_true, y_pred, labels=list(tags), digits=3))
+    #print(classifier.most_informative_features(15))
+    #print(eli5.explain_weights(classifier._clf))
+    tags.add('O')
+    most_informative_feature_for_class(classifier)
+
+    #print_top10(classifier._vectorizer, classifier._clf, tags)
+    #important_features(classifier._vectorizer, classifier._clf)
+    #show_most_informative_features_in_list(classifier)
     return f1, a
 
 
@@ -191,6 +202,38 @@ def dataToFeatureList(data):
         output += [(x[i], y[i]) for i in range(len(y))]
 
     return output
+
+def most_informative_feature_for_class(clf, n=10):
+    classifier = clf._clf
+    vectorizer = clf._vectorizer
+    labels = list(clf.labels())
+    feature_names = vectorizer.get_feature_names()
+    output = []
+    for label in labels:
+        labelid = labels.index(label)
+        topn = sorted(zip(classifier.coef_[labelid], feature_names))[-n:]
+
+        for coef, feat in topn:
+            #print(label, feat, coef)
+            output.append((label, feat, round(coef, 4)))
+    
+    output.sort(key=lambda a: a[2], reverse=False)
+
+    print("{:2}   {:10} {:25} {:10}".format('', 'Label', 'Feature', 'Coefficient'))
+    for i, tup in enumerate(output[:40], 1):
+        print("{:2}   {:10} {:25} {:10}".format(i, *tup))
+
+def getLowestCoef():
+    pass
+
+def print_top10(vectorizer, clf, class_labels):
+    """Prints features with the highest coefficient values, per class"""
+    feature_names = vectorizer.get_feature_names()
+    for i, class_label in enumerate(class_labels):
+        top10 = np.argsort(clf.coef_[i])[-10:]
+        print("%s: %s" % (class_label,
+              " ".join(feature_names[j] for j in top10)))
+        print(top10)
 
 def dataToTrainTest(data):
     x = []
@@ -292,7 +335,7 @@ def getSimpleSentPartFeatures(offset, sent_part):
         'lemma'+offset : lemma,
         'pos'+offset : pos,
         'length'+offset : len(word),
-        'contains_dashes'+offset : '-' in word
+        #'contains_dashes'+offset : '-' in word,
         #'begin'+offset : word[:1],
         #'end'+offset : word[-1:],
         #'bigram_begin'+offset : word[:2],
@@ -329,8 +372,8 @@ def getSentPartFeatures(offset, sent_part):
         #'both_word_lemma_upper' : word.istitle() and lemma.istitle(),
         'is_upper'+offset : word.isupper(),
         'contains_dashes'+offset : '-' in word,
-        '4gram_begin'+offset : word[:4],
-        '4gram_end'+offset : word[-4:],
+        #'4gram_begin'+offset : word[:4],
+        #'4gram_end'+offset : word[-4:],
         'trigram_begin'+offset : word[:3],
         'trigram_end'+offset : word[-3:],
         'bigram_begin'+offset : word[:2],
